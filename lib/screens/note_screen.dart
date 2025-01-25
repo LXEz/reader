@@ -1,5 +1,9 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:reader/models/note.dart';
 import 'note_detail_screen.dart';
+import '../database/database_helper.dart';
 
 class NoteScreen extends StatefulWidget {
   const NoteScreen({super.key});
@@ -9,23 +13,22 @@ class NoteScreen extends StatefulWidget {
 }
 
 class _NoteScreenState extends State<NoteScreen> {
-  List<Note> notes = [
-    Note(
-      title: '今日工作计划',
-      content: '1. 完成项目文档\n2. 参加团队会议\n3. 代码审查',
-      createTime: '2024-03-21',
-    ),
-    Note(
-      title: '学习笔记',
-      content: 'Flutter 状态管理方案对比：\n- Provider\n- Riverpod\n- Bloc',
-      createTime: '2024-03-20',
-    ),
-    Note(
-      title: '购物清单',
-      content: '- 水果\n- 面包\n- 牛奶',
-      createTime: '2024-03-19',
-    ),
-  ];
+  List<Note> notes = [];
+  final dbHelper = DatabaseHelper.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotes();
+  }
+
+  Future<void> _loadNotes() async {
+    final notesList = await dbHelper.getAllNotes();
+    log(notesList.toString());
+    setState(() {
+      notes = notesList;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,9 +49,13 @@ class _NoteScreenState extends State<NoteScreen> {
                   context,
                   MaterialPageRoute(
                     builder: (context) => NoteDetailScreen(
+                      note: notes[index],
                       title: notes[index].title,
                       content: notes[index].content,
                       createTime: notes[index].createTime,
+                      onUpdate: () {
+                        _loadNotes();
+                      },
                     ),
                   ),
                 );
@@ -92,26 +99,21 @@ class _NoteScreenState extends State<NoteScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
               child: const Text('取消'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 if (titleController.text.isNotEmpty &&
                     contentController.text.isNotEmpty) {
-                  setState(() {
-                    notes.insert(
-                      0,
-                      Note(
-                        title: titleController.text,
-                        content: contentController.text,
-                        createTime: DateTime.now().toString().substring(0, 10),
-                      ),
-                    );
-                  });
-                  Navigator.pop(context);
+                  final note = Note(
+                    title: titleController.text,
+                    content: contentController.text,
+                    createTime: DateTime.now().toString().substring(0, 10),
+                  );
+                  await dbHelper.insertNote(note);
+                  await _loadNotes();
+                  if (mounted) Navigator.pop(context);
                 }
               },
               child: const Text('保存'),
@@ -121,16 +123,4 @@ class _NoteScreenState extends State<NoteScreen> {
       },
     );
   }
-}
-
-class Note {
-  final String title;
-  final String content;
-  final String createTime;
-
-  const Note({
-    required this.title,
-    required this.content,
-    required this.createTime,
-  });
 }

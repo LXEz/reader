@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:reader/database/database_helper.dart';
 import 'note_screen.dart';
 import 'voice_to_text_screen.dart';
 
@@ -16,18 +17,47 @@ class HomeScreen extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                '学习助手',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
+            DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
                 ),
-              ),
-            ),
+                child: Row(
+                  children: [
+                    const Text(
+                      '学习助手',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                      ),
+                    ),
+                    ElevatedButton(
+                        onPressed: () async {
+                          try {
+                            final dbHelper = DatabaseHelper.instance;
+                            await dbHelper.exportDatabase();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('数据库导出成功'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            print(e);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('数据库导出失败'),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: const Text("导出数据库"))
+                  ],
+                )),
             ListTile(
               leading: const Icon(Icons.note_add),
               title: const Text('笔记列表'),
@@ -52,9 +82,33 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-      body: const Center(
-        child: Text('欢迎使用学习助手！'),
-      ),
+      body: Center(
+          child: ElevatedButton(
+              onPressed: () async {
+                try {
+                  final dbHelper = DatabaseHelper.instance;
+                  await dbHelper.exportDatabase();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('数据库导出成功'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  print(e);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('数据库导出失败'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text("导出数据库"))),
     );
   }
 }
