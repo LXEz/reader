@@ -110,30 +110,13 @@ class HomeScreen extends StatelessWidget {
       body: Center(
           child: ElevatedButton(
               onPressed: () async {
-                try {
-                  final dbHelper = DatabaseHelper.instance;
-                  await dbHelper.exportDatabase();
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('数据库导出成功'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  print(e);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('数据库导出失败'),
-                        duration: Duration(seconds: 2),
-                      ),
-                    );
-                  }
-                }
+                NotificationService.instance.showNotification(
+                  id: 2,
+                  title: '这是一个测试 notification ',
+                  body: '该复习笔记了！',
+                );
               },
-              child: const Text("导出数据库"))),
+              child: const Text("展示一个notification"))),
     );
   }
 

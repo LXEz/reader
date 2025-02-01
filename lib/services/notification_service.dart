@@ -44,6 +44,8 @@ class NotificationService {
       initSettings,
       onDidReceiveNotificationResponse: (details) {
         // 处理通知点击事件
+
+        print('Notification clicked: $details');
       },
     );
   }
