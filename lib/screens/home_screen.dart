@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:reader/database/database_helper.dart';
 import 'note_screen.dart';
 import 'voice_to_text_screen.dart';
+import 'package:reader/services/notification_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -79,6 +80,30 @@ class HomeScreen extends StatelessWidget {
                 );
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.notifications),
+              title: const Text('设置提醒'),
+              onTap: () {
+                _showNotificationDialog(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.notification_important),
+              title: const Text('立即提醒'),
+              onTap: () {
+                NotificationService.instance.showNotification(
+                  id: 2,
+                  title: '学习提醒',
+                  body: '该复习笔记了！',
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('已发送通知'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -110,5 +135,41 @@ class HomeScreen extends StatelessWidget {
               },
               child: const Text("导出数据库"))),
     );
+  }
+
+  void _showNotificationDialog(BuildContext context) {
+    showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    ).then((selectedTime) {
+      if (selectedTime != null) {
+        final now = DateTime.now();
+        var scheduledDate = DateTime(
+          now.year,
+          now.month,
+          now.day,
+          selectedTime.hour,
+          selectedTime.minute,
+        );
+
+        // 如果选择的时间已经过去，就设置为明天的这个时间
+        if (scheduledDate.isBefore(now)) {
+          scheduledDate = scheduledDate.add(const Duration(days: 1));
+        }
+
+        NotificationService.instance.scheduleNotification(
+          id: 1,
+          title: '学习提醒',
+          body: '该复习笔记了！',
+          scheduledDate: scheduledDate,
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('提醒已设置为 ${selectedTime.format(context)}'),
+          ),
+        );
+      }
+    });
   }
 }
